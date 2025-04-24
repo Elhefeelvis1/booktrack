@@ -1,0 +1,115 @@
+<%- include('partials/header.ejs');  -%>
+<body>
+    <header>
+        <div class="header">
+            <h2>
+                The Book-Keeper
+            </h2>
+            <p>Shows all the books a user have read</p>
+        </div>
+        <div class="users">
+            <% if (locals.user){ %>
+                <% user.forEach((content) => { %>
+                <form action="/setUser" method="post">
+                    <input type="submit" class="setUser" name="id" id="<%= content.id %>" value="<%= content.id %>">
+                    <label for="<%= content.id %>" style="background-color: <%= content.color %> ;"> <%= content.name %> </label>
+                </form>
+                <% }) %>
+            <% } %>
+            <form action="/newUser" method="post">
+                <input type="submit" class="newUser" value="Add new user">
+            </form>
+        </div>
+    </header>
+    <main>
+        <div class="listBox">
+            <% if (locals.book) { %>
+            <% book.forEach((content) => {%>
+            <div class="list">
+                <div class="content">
+                    <div class="title">
+                        <p class="bookName"><%= content.name %></p>
+                    </div>
+                    <div class="subContent">
+                        <p class="rating"><%= content.rating %> <i class="fa-solid fa-star"></i></p>
+                        <% 
+                        let toString = content.date_read.toString()
+                        let sliced = toString.slice(0, 16);
+                        %>
+                        <p class="saveDate"><%= sliced %></p>
+                    </div>
+                </div>
+                <div class="formUpdate">
+                    <button class="rateUnhide<%=content.id%>" onclick="showForm('update<%=content.id%>', 'rateUnhide<%=content.id%>')">Rate</button>
+                    <form class="update<%=content.id%> hidden" action="/rate" method="post">
+                        <input type="number" id="rateValue" name="rateValue" min="1" max="5">
+                        <input type="hidden" name="ratingId" value="<%= content.id %>">
+                        <input id="rate" type="submit" >
+                    </form>
+                    <form action="/delete" method="post">
+                        <input type="hidden" name="deleteId" value="<%= content.id %>">
+                        <button type="submit" onclick="return deletePrompt()">Delete</button>
+                    </form>
+                </div>
+            </div>
+            <% })  %>
+            <% } %>
+            <div class="createNew">
+                <button onclick="showForm('createForm')">New Book</button>
+                <div class="createForm hidden">
+                    <form action="/newBook" method="post">
+                        <input type="text" name="bookName" placeholder="Enter the Book's name">
+                        <input type="submit" value="Search Books">
+                    </form>
+                </div>
+                <div class="chooseBook">
+                    <% if(locals.bookList){ %>
+                        <form action="/saveBook" method="post" id="saveBookForm">
+                            <label for="bookSelect">Choose a book:</label>
+                            <select name="bookName" id="bookSelect">
+                              <% bookList.forEach(book => { %>
+                                <option 
+                                  value="<%= book.title %>" 
+                                  data-author="<%= book.author_name ? book.author_name : 'Unknown' %>" 
+                                  data-published-date="<%= book.first_publish_year ? book.first_publish_year : 'Unknown' %>"
+                                >
+                                  <%= book.title %>
+                                </option>
+                              <% }); %>
+                            </select>
+                            <input type="hidden" name="author" id="authorInput">
+                            <input type="hidden" name="published_date" id="dateInput">
+                            <input type="submit" value="Save Book">
+                        </form>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+<script>
+    function showForm(...args){
+        for(let arg of args)
+        document.querySelector("." + arg).classList.toggle("hidden");
+    }
+    function deletePrompt() {
+    if (confirm("Continue to Delete?")) {
+        // Allow form submission
+        return true;
+    } else {
+        alert("Canceled by user");
+        // Prevent form submission
+        return false;
+    }
+}
+    document.getElementById('saveBookForm').addEventListener('submit', function(event) {
+        const selectElement = document.getElementById('bookSelect');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const author = selectedOption.dataset.author;
+        const publishedDate = selectedOption.dataset.publishedDate;
+
+        document.getElementById('authorInput').value = author;
+        document.getElementById('dateInput').value = publishedDate;
+    });
+</script>
+</html>
